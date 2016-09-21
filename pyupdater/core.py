@@ -27,7 +27,7 @@ from __future__ import unicode_literals
 import os
 
 from pyupdater.key_handler import KeyHandler
-from pyupdater.key_handler.keys import KeyImporter
+from pyupdater.key_handler.keys import KeyImporter, Keys
 from pyupdater.package_handler import PackageHandler
 from pyupdater.uploader import Uploader
 from pyupdater.utils.config import Config
@@ -41,7 +41,9 @@ class PyUpdater(object):
             config (obj): config object
     """
     def __init__(self, config=None):
-        self.config = Config()
+        self.keys = Keys()
+        self.kh = KeyHandler()
+        self.key_importer = KeyImporter()
         # Important to keep this before updating config
         if config is not None:
             self.update_config(config)
@@ -57,14 +59,15 @@ class PyUpdater(object):
             config.DATA_DIR = None
         if config.DATA_DIR is None:
             config.DATA_DIR = os.getcwd()
-        self.config.from_object(config)
-        self._update(self.config)
+
+        self._update(config)
 
     def _update(self, config):
-        self.kh = KeyHandler()
-        self.key_importer = KeyImporter()
         self.ph = PackageHandler(config)
         self.up = Uploader(config)
+
+    def make_keypack(self, app_name):
+        self.keys.make_keypack(app_name)
 
     def setup(self):
         "Sets up root dir with required PyUpdater folders"
@@ -94,7 +97,7 @@ class PyUpdater(object):
 
     def import_keypack(self):
         "Creates signing keys"
-        self.key_importer.start()
+        return self.key_importer.start()
 
     def sign_update(self):
         "Signs version file with signing key"

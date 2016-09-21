@@ -41,7 +41,6 @@ from pyupdater import settings
 from pyupdater.builder import Builder, ExternalLib
 from pyupdater.cli.options import get_parser
 from pyupdater.client.downloader import get_http_pool
-from pyupdater.key_handler.keys import Keys, KeyImporter
 from pyupdater.utils import (check_repo,
                              initial_setup,
                              PluginManager,
@@ -52,7 +51,7 @@ from pyupdater.utils import (check_repo,
                              setup_patches,
                              setup_plugin,
                              setup_urls)
-from pyupdater.utils.config import Config, Loader
+from pyupdater.utils.config import Config
 from pyupdater.utils.exceptions import UploaderError, UploaderPluginError
 
 
@@ -154,12 +153,12 @@ def init():  # pragma: no cover
     if not os.path.exists(os.path.join(settings.CONFIG_DATA_FOLDER,
                           settings.CONFIG_FILE_USER)):
         config = Config()
-        config = initial_setup(config)
+        initial_setup(config)
         log.info('Creating pyu-data dir...')
         pyu = PyUpdater(config)
         pyu.setup()
-        loader = Loader()
-        loader.save_config(config)
+        config._load_config()
+        config.save_config()
         log.info('Setup complete')
     else:
         sys.exit('Not an empty PyUpdater repository')
@@ -192,22 +191,18 @@ def _keys(args):  # pragma: no cover
     if args.import_keys is True and check is False:
         _repo_error()
 
+    pyu = PyUpdater()
     if args.create is True and check is False:
-        k = Keys()
         app_name = get_correct_answer('Please enter app name',
                                       required=True)
-        k.make_keypack(app_name)
+        pyu.make_keypack(app_name)
         log.info('Keypack placed in cwd')
         return
 
     if args.import_keys is True and check is True:
-        loader = Loader()
-        config = loader.load_config()
-        ki = KeyImporter()
-        imported = ki.start()
+        imported = pyu.import_keypack()
         if imported is True:
             log.info('Keypack import successfully')
-            loader.save_config(config)
         else:
             log.warning('Keypack import failed')
 
@@ -226,8 +221,8 @@ def pkg(args):
     if check is False:
         _repo_error()
 
-    loader = Loader()
-    pyu = PyUpdater(loader.load_config())
+    config = Config(load_config=True)
+    pyu = PyUpdater(config)
     if args.process is False and args.sign is False:
         sys.exit('You must specify a command')
 
@@ -247,8 +242,7 @@ def setting(args):  # pragma: no cover
         _repo_error()
     # Used to specifiy if config needs to be saved
     save_config = True
-    loader = Loader()
-    config = loader.load_config()
+    config = Config()
     if args.config_path is True:
         setup_client_config_path(config)
     if args.company is True:
@@ -266,7 +260,7 @@ def setting(args):  # pragma: no cover
         print_plugin_settings(args.show_plugin, config)
 
     if save_config is True:
-        loader.save_config(config)
+        config.save_config()
         log.info('Settings update complete')
 
 
@@ -331,14 +325,13 @@ def upload(args):  # pragma: no cover
         _repo_error()
 
     error = False
-    loader = Loader()
     upload_service = args.service
     if upload_service is None:
         log.error('Must provide service name')
         error = True
 
     if error is False:
-        pyu = PyUpdater(loader.load_config())
+        pyu = PyUpdater(Config(load_config=True))
         try:
             pyu.set_uploader(upload_service, args.keep)
         except UploaderError as err:

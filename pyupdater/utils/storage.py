@@ -23,14 +23,116 @@
 # OR OTHER DEALINGS IN THE SOFTWARE.
 # --------------------------------------------------------------------------
 from __future__ import print_function, unicode_literals
-
+import io
+import json
 import logging
 import os
 
+try:
+    from UserDict import DictMixin as dictmixin
+except ImportError:
+    from collections import MutableMapping as dictmixin
+
+
+import six
+
 from pyupdater import settings
-from pyupdater.utils import JSONStore
 
 log = logging.getLogger(__name__)
+
+
+class JSONStore(dictmixin):
+
+    def __init__(self, path, json_kw=None):
+        """Create a JSONStore object backed by the file at `path`.
+        If a dict is passed in as `json_kw`, it will be used as keyword
+        arguments to the json module.
+        """
+        self.path = path
+        self.json_kw = json_kw or {}
+
+        self._data = {}
+
+        self._synced_json_kw = None
+        self._needs_sync = False
+
+        if not os.path.exists(path):
+            self.sync(force=True)  # write empty dict to disk
+            return
+        try:
+            # load the whole store
+            with io.open(path, 'r', encoding='utf-8') as fp:
+                self.update(json.load(fp))
+        except Exception as err:
+            log.warning(err)
+            log.debug(err, exc_info=True)
+
+    def __str__(self):
+        return str(self._data)
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+        self._needs_sync = True
+
+    def __delitem__(self, key):
+        del self._data[key]
+        self._needs_sync = True
+
+    def __len__(self):
+        return len(self._data)
+
+    def __iter__(self):
+        i = []
+        for k, v in self._data.items():
+            i.append((k, v))
+        return iter(i)
+
+    def _sanatize(self, data):
+        _data = {}
+        for k, v in data.items():
+            if hasattr(v, '__call__') is True:
+                continue
+            if isinstance(v, JSONStore) is True:
+                continue
+            if k in ['__weakref__', '__module__', '__dict__', '__doc__']:
+                continue
+            _data[k] = v
+        return _data
+
+    def copy(self):
+        return self._data.copy()
+
+    def keys(self):
+        return self._data.keys()
+
+    def sync(self, json_kw=None, force=False):
+        """Atomically write the entire store to disk if it's changed.
+        If a dict is passed in as `json_kw`, it will be used as keyword
+        arguments to the json module.
+        If force is set True, a new file will be written even if the store
+        hasn't changed since last sync.
+        """
+        json_kw = json_kw or self.json_kw
+        if self._synced_json_kw != json_kw:
+            self._needs_sync = True
+
+        if not (self._needs_sync or force):
+            return False
+
+        data = self._sanatize(self._data)
+        with io.open(self.path, 'w', encoding='utf-8') as json_file:
+            data = json.dumps(data, ensure_ascii=False, indent=2)
+            if six.PY2:
+                # unicode(data) auto-decodes data to unicode if str
+                data = unicode(data)
+            json_file.write(data)
+
+        self._synced_json_kw = json_kw
+        self._needs_sync = False
+        return True
 
 
 # Used by KeyHandler, PackageHandler & Config to
@@ -54,8 +156,6 @@ class Storage(object):
                                      settings.CONFIG_FILE_USER)
         log.debug('Config DB: %s', self.filename)
         self.db = JSONStore(self.filename)
-        self.sync_threshold = 3
-        self.count = 0
         self._load_db()
 
     def __getattr__(self, name):

@@ -36,7 +36,7 @@ from pyupdater.utils import (check_repo,
                              create_asset_archive,
                              lazy_import,
                              make_archive)
-from pyupdater.utils.config import Loader
+from pyupdater.utils.config import Config
 
 from dsdev_utils.helpers import Version
 from dsdev_utils.paths import remove_any
@@ -70,8 +70,8 @@ class Builder(object):  # pragma: no cover
     def __init__(self, args, pyi_args):
         check_repo()
         # We only need to grab appname
-        l = Loader()
-        self.app_name = l.get_app_name()
+        config = Config(load_config=True)
+        self.app_name = config.APP_NAME
         self.args = args
         self.app_info, self.pyi_args = self._check_input_file(pyi_args)
 

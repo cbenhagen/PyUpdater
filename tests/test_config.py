@@ -26,7 +26,7 @@ from __future__ import unicode_literals
 
 import os
 
-from pyupdater.utils.config import Config, Loader
+from pyupdater.utils.config import Config
 
 
 class DevConfig(object):
@@ -50,28 +50,28 @@ class BasicCofig(object):
 
 
 def test_dev_config():
-    config = Config()
+    config = Config(client=True)
     test_config = DevConfig()
     config.from_object(test_config)
     assert config['TESTING'] is True
 
 
 def test_dev_config_bad_attr():
-    config = Config()
+    config = Config(client=True)
     test_config = DevConfig()
     config.from_object(test_config)
     assert config.get('BAD_ATTR', None) is None
 
 
 def test_prod_config():
-    config = Config()
+    config = Config(client=True)
     prod_config = ProdConfig()
     config.from_object(prod_config)
     assert config['MORE_INFO'] == 'Yes Please'
 
 
 def test_prod_bad_atter():
-    config = Config()
+    config = Config(client=True)
     prod_config = ProdConfig()
     config.from_object(prod_config)
     assert config.get('DEBUG', None) is not None
@@ -81,6 +81,5 @@ def test_write_config(cleandir):
     config = Config()
     prod_config = ProdConfig()
     config.from_object(prod_config)
-    l = Loader()
-    l._write_config_py(config)
+    config._write_config_py(config)
     assert 'client_config.py' in os.listdir(os.getcwd())

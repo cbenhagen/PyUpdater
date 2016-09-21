@@ -118,7 +118,7 @@ class Client(object):
         """
 
         # A super dict used to save config info & be dot accessed
-        config = Config()
+        config = Config(client=True)
         config.from_object(obj)
 
         # Boolean: If executing frozen

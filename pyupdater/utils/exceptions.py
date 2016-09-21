@@ -68,6 +68,12 @@ class ClientError(STDError):
         super(ClientError, self).__init__(*args, **kwargs)
 
 
+class ConfigError(STDError):
+    """Raised for Config exceptions"""
+    def __init__(self, *args, **kwargs):
+        super(ConfigError, self).__init__(*args, **kwargs)
+
+
 class FileDownloaderError(STDError):
     def __init__(self, *args, **kwargs):
         super(FileDownloaderError, self).__init__(*args, **kwargs)
