@@ -52,18 +52,19 @@ class Config(dict):
         #             Uploader during initialization
         self.load_config = kwargs.get('load_config', False)
         self.client = kwargs.get('client', False)
+        self._database_loaded = False
 
         # We must be in a repo. Initialize the database!
         if self.client is False:
-            self.db = Storage()
+            self.db = Storage(refresh=False)
             # Load the repo configuration.
-            if self.load_config is True:
+            if self.load_config is not False:
                 self._load_config()
         else:
             self.db = None
 
     def __postinit__(self):
-        config_template = {
+        self.config_template = {
             # If left None "PyUpdater App" will be used
             'APP_NAME': settings.GENERIC_APP_NAME,
 
@@ -81,7 +82,7 @@ class Config(dict):
             # Max retries for downloads
             'MAX_DOWNLOAD_RETRIES': 3,
             }
-        self.update(config_template)
+        self.update(self.config_template)
 
     def from_object(self, obj):
         """Updates the values from ClientConfig
@@ -117,6 +118,7 @@ class Config(dict):
         for k, v in config_data.items():
             self[k] = v
         self.DATA_DIR = os.getcwd()
+        self._database_loaded = True
 
     def save_config(self):
         """Saves config file to pyupdater database
@@ -129,11 +131,23 @@ class Config(dict):
         if self.db is None:
             raise ConfigError('This object is configured with no file access')
 
+        if self._database_loaded is False:
+            self._load_config()
+
         log.info('Saving Config')
         out = {}
         for k, v in self.items():
             if k.isupper():
-                out[k] = v
+                if k == 'PLUGIN_CONFIGS':
+                    if len(self.config_template[k]) != 0:
+                        out[k] = v
+                else:
+                    if k in self.config_template.keys():
+                        if self.config_template[k] != v:
+                            out[k] = v
+                    else:
+                        out[k] = v
+
         self.db.save(settings.CONFIG_DB_KEY_APP_CONFIG, out)
         log.info('Config saved')
         self._write_config_py()

@@ -34,7 +34,6 @@ import ed25519
 import six
 
 from pyupdater.utils import check_repo
-from pyupdater.utils.storage import Storage
 from pyupdater import settings
 
 log = logging.getLogger(__name__)
@@ -153,8 +152,8 @@ class Keys(object):
 
 class KeyImporter(object):
 
-    def __init__(self):
-        self.db = Storage()
+    def __init__(self, config):
+        self.db = config.db
 
     def _look_for_keypack(self):
         files = os.listdir(os.getcwd())

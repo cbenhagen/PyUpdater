@@ -74,8 +74,7 @@ class PackageHandler(object):
         # Specifies if the config file needs to be loaded
         self.config_loaded = False
 
-        # Used to store config information
-        self.db = Storage()
+        self.db = None
 
         # Initialize app if config is available
         if config is not None:
@@ -89,6 +88,7 @@ class PackageHandler(object):
             obj (instance): config object
 
         """
+        self.db = obj.db
         self.patches = obj.get('UPDATE_PATCHES', True)
         if self.patches:
             log.debug('Patch support enabled')

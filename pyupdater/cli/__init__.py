@@ -157,7 +157,6 @@ def init():  # pragma: no cover
         log.info('Creating pyu-data dir...')
         pyu = PyUpdater(config)
         pyu.setup()
-        config._load_config()
         config.save_config()
         log.info('Setup complete')
     else:
@@ -191,15 +190,16 @@ def _keys(args):  # pragma: no cover
     if args.import_keys is True and check is False:
         _repo_error()
 
-    pyu = PyUpdater()
     if args.create is True and check is False:
         app_name = get_correct_answer('Please enter app name',
                                       required=True)
+        pyu = PyUpdater()
         pyu.make_keypack(app_name)
         log.info('Keypack placed in cwd')
         return
 
     if args.import_keys is True and check is True:
+        pyu = PyUpdater(Config())
         imported = pyu.import_keypack()
         if imported is True:
             log.info('Keypack import successfully')
@@ -221,7 +221,7 @@ def pkg(args):
     if check is False:
         _repo_error()
 
-    config = Config(load_config=True)
+    config = Config()
     pyu = PyUpdater(config)
     if args.process is False and args.sign is False:
         sys.exit('You must specify a command')
@@ -331,7 +331,7 @@ def upload(args):  # pragma: no cover
         error = True
 
     if error is False:
-        pyu = PyUpdater(Config(load_config=True))
+        pyu = PyUpdater(Config())
         try:
             pyu.set_uploader(upload_service, args.keep)
         except UploaderError as err:

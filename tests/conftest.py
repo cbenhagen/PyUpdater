@@ -40,8 +40,8 @@ import pytest
 from pyupdater import PyUpdater
 from pyupdater.cli.options import make_parser
 from pyupdater.client import Client
+from pyupdater.config import Config
 from pyupdater.key_handler.keys import Keys
-from pyupdater.utils.config import Loader
 from pyupdater.utils.storage import Storage
 from tconfig import TConfig
 
@@ -75,16 +75,15 @@ def db():
 
 @pytest.fixture
 def loader():
-    CONFIG = {
+    _CONFIG = {
         'APP_NAME': 'PyUpdater Test',
         'COMPANY_NAME': 'ACME',
         'UPDATE_PATCHES': True,
         }
 
-    l = Loader()
-    config = l.load_config()
-    config.update(CONFIG)
-    l.save_config(config)
+    config = Config()
+    config.update(_CONFIG)
+    config.save_config()
     return config
 
 

@@ -27,7 +27,6 @@ from __future__ import unicode_literals
 
 from pyupdater import settings
 from pyupdater.utils import lazy_import
-from pyupdater.utils.storage import Storage
 
 
 @lazy_import
@@ -80,11 +79,11 @@ class KeyHandler(object):
 
     Kwargs:
 
-        app (obj): Config object to get config values from
+        config (dict): Config object to get config values from current repo
     """
 
-    def __init__(self):
-        self.db = Storage()
+    def __init__(self, config):
+        self.db = config.db
 
         self.key_encoding = 'base64'
         data_dir = os.getcwd()

@@ -42,8 +42,6 @@ class PyUpdater(object):
     """
     def __init__(self, config=None):
         self.keys = Keys()
-        self.kh = KeyHandler()
-        self.key_importer = KeyImporter()
         # Important to keep this before updating config
         if config is not None:
             self.update_config(config)
@@ -63,6 +61,8 @@ class PyUpdater(object):
         self._update(config)
 
     def _update(self, config):
+        self.kh = KeyHandler(config)
+        self.key_importer = KeyImporter(config)
         self.ph = PackageHandler(config)
         self.up = Uploader(config)
 

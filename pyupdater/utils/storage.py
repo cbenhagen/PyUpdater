@@ -55,13 +55,13 @@ class JSONStore(dictmixin):
 
         self._synced_json_kw = None
         self._needs_sync = False
+        self._data_from_disk_loaded = False
 
-        if not os.path.exists(path):
-            self.sync(force=True)  # write empty dict to disk
-            return
+    def _load_data_from_disk(self):
+        self._data_from_disk_loaded = True
         try:
             # load the whole store
-            with io.open(path, 'r', encoding='utf-8') as fp:
+            with io.open(self.path, 'r', encoding='utf-8') as fp:
                 self.update(json.load(fp))
         except Exception as err:
             log.warning(err)
@@ -71,20 +71,30 @@ class JSONStore(dictmixin):
         return str(self._data)
 
     def __getitem__(self, key):
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
         return self._data[key]
 
     def __setitem__(self, key, value):
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
         self._data[key] = value
         self._needs_sync = True
 
     def __delitem__(self, key):
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
         del self._data[key]
         self._needs_sync = True
 
     def __len__(self):
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
         return len(self._data)
 
     def __iter__(self):
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
         i = []
         for k, v in self._data.items():
             i.append((k, v))
@@ -103,9 +113,13 @@ class JSONStore(dictmixin):
         return _data
 
     def copy(self):
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
         return self._data.copy()
 
     def keys(self):
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
         return self._data.keys()
 
     def sync(self, json_kw=None, force=False):
@@ -115,6 +129,9 @@ class JSONStore(dictmixin):
         If force is set True, a new file will be written even if the store
         hasn't changed since last sync.
         """
+        if self._data_from_disk_loaded is False:
+            self._load_data_from_disk()
+
         json_kw = json_kw or self.json_kw
         if self._synced_json_kw != json_kw:
             self._needs_sync = True
@@ -139,7 +156,7 @@ class JSONStore(dictmixin):
 # store data in a json file
 class Storage(object):
 
-    def __init__(self):
+    def __init__(self, refresh=True):
         """Loads & saves config file to file-system.
 
             Args:
@@ -156,7 +173,10 @@ class Storage(object):
                                      settings.CONFIG_FILE_USER)
         log.debug('Config DB: %s', self.filename)
         self.db = JSONStore(self.filename)
-        self._load_db()
+        self._loaded_db = False
+        if refresh is True:
+            self._loaded_db = True
+            self._load_db()
 
     def __getattr__(self, name):
         return self.__class__.__dict__.get(name)
@@ -191,6 +211,9 @@ class Storage(object):
             value (obj): python object to store in database
 
         """
+        if self._loaded_db is False:
+            self._load_db()
+
         setattr(Storage, key, value)
         for k, v in Storage.__dict__.items():
             self.db[k] = v
@@ -209,4 +232,7 @@ class Storage(object):
 
                 Object if exists or else None
         """
+        if self._loaded_db is False:
+            self._load_db()
+å
         return self.__class__.__dict__.get(key)
