@@ -95,9 +95,11 @@ def parser():
 
 @pytest.fixture
 def pyu():
-    t_config = TConfig()
-    t_config.DATA_DIR = os.getcwd()
-    pyu = PyUpdater(t_config)
+    config = Config()
+    test_config = TConfig()
+    test_config.DATA_DIR = os.getcwd()
+    config.from_object(test_config)
+    pyu = PyUpdater(config)
     return pyu
 
 
