@@ -33,6 +33,7 @@ from pyupdater.cli import build, clean, make_spec, pkg
 from pyupdater.cli.options import (add_build_parser, add_clean_parser,
                                    add_keys_parser, add_make_spec_parser,
                                    add_package_parser, make_subparser)
+from pyupdater.utils.config import Config
 
 
 @pytest.mark.usefixtures('cleandir', 'parser', 'pyu')
@@ -138,7 +139,7 @@ class TestPkg(object):
     def test_no_options(self, parser, pyu):
         subparser = make_subparser(parser)
         add_package_parser(subparser)
-        pyu.update_config(pyu.config)
+        pyu.update_config(Config())
         pyu.setup()
         opts, other = parser.parse_known_args(['pkg'])
         with pytest.raises(SystemExit):
@@ -147,7 +148,7 @@ class TestPkg(object):
     def test_execution(self, parser, pyu):
         subparser = make_subparser(parser)
         add_package_parser(subparser)
-        pyu.update_config(pyu.config)
+        pyu.update_config(Config())
         pyu.setup()
         cmd = ['pkg', '-P', '-S']
         opts, other = parser.parse_known_args(cmd)

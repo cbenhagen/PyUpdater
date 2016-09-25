@@ -78,7 +78,7 @@ def test_prod_bad_atter():
 
 
 def test_write_config(cleandir):
-    config = Config()
+    config = Config(client=True)
     prod_config = ProdConfig()
     config.from_object(prod_config)
     config._write_config_py(config)

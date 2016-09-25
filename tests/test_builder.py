@@ -31,7 +31,7 @@ from dsdev_utils.system import get_system
 import pytest
 
 from pyupdater.builder import ExternalLib
-from pyupdater.utils.config import Loader
+from pyupdater.utils.config import Config
 
 
 CONFIG = {
@@ -51,10 +51,8 @@ else:
 class TestBuilder(object):
 
     def test_build(self):
-        l = Loader()
-        config = l.load_config()
+        config = Config()
         config.update(CONFIG)
-        l.save_config(config)
 
 
 @pytest.mark.usefixtures("cleandir",)

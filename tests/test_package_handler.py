@@ -27,7 +27,6 @@ from __future__ import unicode_literals
 import io
 import os
 
-from dsdev_utils.paths import ChDir
 import pytest
 
 from pyupdater import settings
@@ -48,18 +47,17 @@ class TestUtils(object):
         data_dir = os.getcwd()
         t_config = TConfig()
         t_config.DATA_DIR = data_dir
-        config = Config()
+        config = Config(client=True)
         config.from_object(t_config)
         p = PackageHandler(config)
         assert p.files_dir == os.path.join(data_dir, user_data_dir, 'files')
         assert p.deploy_dir == os.path.join(data_dir, user_data_dir, 'deploy')
 
     def test_no_patch_support(self):
-        data_dir = os.getcwd()
         t_config = TConfig()
-        t_config.DATA_DIR = data_dir
+        t_config.DATA_DIR = os.getcwd()
         t_config.UPDATE_PATCHES = False
-        config = Config()
+        config = Config(client=True)
         config.from_object(t_config)
         p = PackageHandler(config)
         p.process_packages()
@@ -79,11 +77,10 @@ class TestUtils(object):
 class TestExecution(object):
 
     def test_process_packages(self):
-        data_dir = os.getcwd()
         t_config = TConfig()
-        t_config.DATA_DIR = data_dir
+        t_config.DATA_DIR = os.getcwd()
         t_config.UPDATE_PATCHES = False
-        config = Config()
+        config = Config(client=True)
         config.from_object(t_config)
         p = PackageHandler(config)
         p.process_packages()

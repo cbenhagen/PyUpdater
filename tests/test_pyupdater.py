@@ -35,6 +35,7 @@ import pytest
 import six
 
 from pyupdater import PyUpdater
+from pyupdater.utils.config import Config
 from tconfig import TConfig
 
 
@@ -42,11 +43,11 @@ from tconfig import TConfig
 class TestSetup(object):
 
     def test_directory_creation(self):
-        data_dir = os.getcwd()
-        pyu_data_dir = os.path.join(data_dir, 'pyu-data')
-        t_config = TConfig()
-        t_config.DATA_DIR = data_dir
-        pyu = PyUpdater(t_config)
+        pyu_data_dir = os.path.join(os.getcwd(), 'pyu-data')
+        config = Config(client=True)
+        test_config = TConfig()
+        config.from_object(test_config)
+        pyu = PyUpdater(config)
         pyu.setup()
         assert os.path.exists(pyu_data_dir)
         assert os.path.exists(os.path.join(pyu_data_dir, 'deploy'))
