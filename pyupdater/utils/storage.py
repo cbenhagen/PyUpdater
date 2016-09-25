@@ -234,5 +234,5 @@ class Storage(object):
         """
         if self._loaded_db is False:
             self._load_db()
-å
+
         return self.__class__.__dict__.get(key)
