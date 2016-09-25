@@ -199,7 +199,8 @@ class Storage(object):
     def _load_db(self):
         "Loads database into memory."
         for k, v in self.db:
-            setattr(Storage, k, v)
+            if not k.startswith('__'):
+                setattr(Storage, k, v)
 
     def save(self, key, value):
         """Saves key & value to database

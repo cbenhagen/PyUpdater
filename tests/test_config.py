@@ -50,36 +50,36 @@ class BasicCofig(object):
 
 
 def test_dev_config():
-    config = Config(client=True)
+    config = Config()
     test_config = DevConfig()
     config.from_object(test_config)
     assert config['TESTING'] is True
 
 
 def test_dev_config_bad_attr():
-    config = Config(client=True)
+    config = Config()
     test_config = DevConfig()
     config.from_object(test_config)
     assert config.get('BAD_ATTR', None) is None
 
 
 def test_prod_config():
-    config = Config(client=True)
+    config = Config()
     prod_config = ProdConfig()
     config.from_object(prod_config)
     assert config['MORE_INFO'] == 'Yes Please'
 
 
 def test_prod_bad_atter():
-    config = Config(client=True)
+    config = Config()
     prod_config = ProdConfig()
     config.from_object(prod_config)
     assert config.get('DEBUG', None) is not None
 
 
 def test_write_config(cleandir):
-    config = Config(client=True)
+    config = Config()
     prod_config = ProdConfig()
     config.from_object(prod_config)
-    config._write_config_py(config)
+    config._write_config_py()
     assert 'client_config.py' in os.listdir(os.getcwd())

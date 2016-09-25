@@ -51,17 +51,12 @@ class Config(dict):
         # Use 2: Used to load the repo config a pass to the PackageHander &
         #             Uploader during initialization
         self.load_config = kwargs.get('load_config', False)
-        self.client = kwargs.get('client', False)
         self._database_loaded = False
 
-        # We must be in a repo. Initialize the database!
-        if self.client is False:
-            self.db = Storage(refresh=False)
-            # Load the repo configuration.
-            if self.load_config is not False:
-                self._load_config()
-        else:
-            self.db = None
+        self.db = Storage(refresh=False)
+        # Load the repo configuration.
+        if self.load_config is not False:
+            self._load_config()
 
     def __postinit__(self):
         self.config_template = {
@@ -93,9 +88,6 @@ class Config(dict):
                                     retrieve updates
 
         """
-        if self.client is False:
-            raise ConfigError('This object is not configured for client use')
-
         # We only car about "yelling" attributes
         for key in dir(obj):
             # :)
@@ -107,10 +99,6 @@ class Config(dict):
 
             Returns (obj): Config object
         """
-        # Safe guard to keep from accessing a database that doesn't exist
-        if self.db is None:
-            raise ConfigError('This object is configured with no file access')
-
         config_data = self.db.load(settings.CONFIG_DB_KEY_APP_CONFIG)
         if config_data is None:
             config_data = {}
@@ -127,10 +115,6 @@ class Config(dict):
 
             obj (obj): config object
         """
-        # Safe guard to keep from accessing a database that doesn't exist
-        if self.db is None:
-            raise ConfigError('This object is configured with no file access')
-
         if self._database_loaded is False:
             self._load_config()
 
@@ -157,10 +141,7 @@ class Config(dict):
         """Writes client config to client_config.py
 
         """
-        if self.db is None:
-            keypack_data = None
-        else:
-            keypack_data = self.db.load(settings.CONFIG_DB_KEY_KEYPACK)
+        keypack_data = self.db.load(settings.CONFIG_DB_KEY_KEYPACK)
 
         if keypack_data is None:
             public_key = None

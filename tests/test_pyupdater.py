@@ -44,7 +44,7 @@ class TestSetup(object):
 
     def test_directory_creation(self):
         pyu_data_dir = os.path.join(os.getcwd(), 'pyu-data')
-        config = Config(client=True)
+        config = Config()
         test_config = TConfig()
         config.from_object(test_config)
         pyu = PyUpdater(config)
